@@ -74,6 +74,18 @@
               <%= formatted_fee(@transaction, denomination: :ether) %> (<span data-wei-value=<%= fee(@transaction) %> data-usd-exchange-rate=<%= @exchange_rate.usd_value %>></span>)
             </dd>
           </dl>
+          <!-- Processing Time -->
+          <%= case processing_time_duration(@transaction) do %>
+            <% :pending -> %>
+              <% nil %>
+            <% {:ok, interval_string} -> %>
+              <dl class="row">
+                <dt class="col-sm-3 text-muted"> <%= gettext "Time Elapsed" %> </dt>
+                <dd class="col-sm-9">
+                  <%= interval_string %>
+                </dd>
+              </dl>
+          <% end %>
 
           <%= unless value_transfer?(@transaction) do %>
           <dl class="row">
