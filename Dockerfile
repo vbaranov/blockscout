@@ -6,7 +6,7 @@
 FROM ethereum/client-go:latest as builder
 
 # Build postgres && blockscout
-FROM bitwalker/alpine-elixir-phoenix:1.8.0
+FROM bitwalker/alpine-elixir-phoenix:1.9.1
 
 # alpine includes "postgres" user/group in base install
 #   /etc/passwd:22:postgres:x:70:70::/var/lib/postgresql:/bin/sh
