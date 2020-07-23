@@ -7,7 +7,7 @@ jobs:
 
     runs-on: ubuntu-latest
     container: 'circleci/elixir:1.10.3-node-browsers'
-    working-directory: ~/app
+    # working-directory: ~/app
 
     env:
       MIX_ENV: test
