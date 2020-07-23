@@ -3,7 +3,7 @@ name: Blockscout
 on: push
 
 jobs:
-  test:
+  credo:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -11,5 +11,5 @@ jobs:
         with:
           otp-version: '22.2'
           elixir-version: '1.10.3'
-      - run: mix deps.get
-      - run: mix test
+      - run: mix local.hex --force
+      - run: mix credo
