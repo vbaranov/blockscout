@@ -1,0 +1,146 @@
+name: Blockscout
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    container: 'circleci/elixir:1.10.3-node-browsers'
+    working-directory: ~/app
+
+    env:
+      MIX_ENV: test
+      PGPASSWORD: postgres
+      PGUSER: postgres
+    steps:
+      - run: pwd
+      - run: mkdir app
+      - run: sh -c "sudo chown -R circleci /github"
+      - run: sh -c "sudo chmod -R 777 /github"
+      - run: "sudo apt-get update; sudo apt-get -y install autoconf build-essential libgmp3-dev libtool"
+      - uses: actions/checkout@v2
+      - run: ./bin/install_chrome_headless.sh
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+      - name: ELIXIR_VERSION.lock
+        run: 'echo "${ELIXIR_VERSION}" > ELIXIR_VERSION.lock'
+      - name: OTP_VERSION.lock
+        run: 'echo "${OTP_VERSION}" > OTP_VERSION.lock'
+      - restore_cache:
+          keys:
+            - >-
+              v8-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum
+              "ELIXIR_VERSION.lock" }}-{{ checksum "mix.lock" }}
+            - >-
+              v8-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum
+              "ELIXIR_VERSION.lock" }}-{{ checksum "mix.exs" }}
+            - >-
+              v8-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum
+              "ELIXIR_VERSION.lock" }}
+      - run: mix deps.get
+      - restore_cache:
+          keys:
+            - >-
+              v7-npm-install-{{ .Branch }}-{{ checksum
+              "apps/block_scout_web/assets/package-lock.json" }}
+            - 'v7-npm-install-{{ .Branch }}'
+            - v7-npm-install
+      - run: npm install
+        working-directory: apps/explorer
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: apps/explorer/node_modules
+          key: >-
+            v3-npm-install-{{ .Branch }}-{{ checksum
+            "apps/explorer/package-lock.json" }}
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: apps/explorer/node_modules
+          key: 'v3-npm-install-{{ .Branch }}'
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: apps/explorer/node_modules
+          key: v3-npm-install
+      - run: npm install
+        working-directory: apps/block_scout_web/assets
+      - run: npm rebuild node-sass
+        working-directory: apps/block_scout_web/assets
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: apps/block_scout_web/assets/node_modules
+          key: >-
+            v7-npm-install-{{ .Branch }}-{{ checksum
+            "apps/block_scout_web/assets/package-lock.json" }}
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: apps/block_scout_web/assets/node_modules
+          key: 'v7-npm-install-{{ .Branch }}'
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: apps/block_scout_web/assets/node_modules
+          key: v7-npm-install
+      - run: mix compile
+      - run: make
+        working-directory: deps/libsecp256k1
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+             deps
+             _build
+          key: >-
+            v8-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum
+            "ELIXIR_VERSION.lock" }}-{{ checksum "mix.lock" }}
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+             deps
+             _build
+          key: >-
+            v8-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum
+            "ELIXIR_VERSION.lock" }}-{{ checksum "mix.exs" }}
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+             deps
+             _build
+          key: >-
+            v8-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum
+            "ELIXIR_VERSION.lock" }}
+      - name: Build assets
+        run: node node_modules/webpack/bin/webpack.js --mode development
+        working-directory: apps/block_scout_web/assets
+      - name: Upload files
+        uses: actions/upload-artifact@v2
+        with:
+          name: blockscout
+          path: |
+             .circleci
+             .credo.exs
+             .dialyzerignore
+             .formatter.exs
+             .git
+             .gitignore
+             ELIXIR_VERSION.lock
+             Gemfile
+             Gemfile.lock
+             OTP_VERSION.lock
+             _build
+             apps
+             bin
+             config
+             deps
+             doc
+             mix.exs
+             mix.lock
+             appspec.yml
+             rel
