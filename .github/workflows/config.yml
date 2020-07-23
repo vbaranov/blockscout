@@ -14,10 +14,10 @@ jobs:
       PGPASSWORD: postgres
       PGUSER: postgres
     steps:
-      - run: pwd
-      - run: mkdir app
-      - run: sh -c "sudo chown -R circleci /github"
-      - run: sh -c "sudo chmod -R 777 /github"
+    #   - run: pwd
+    #   - run: mkdir app
+    #   - run: sh -c "sudo chown -R circleci /github"
+    #   - run: sh -c "sudo chmod -R 777 /github"
       - run: "sudo apt-get update; sudo apt-get -y install autoconf build-essential libgmp3-dev libtool"
       - uses: actions/checkout@v2
       - run: ./bin/install_chrome_headless.sh
