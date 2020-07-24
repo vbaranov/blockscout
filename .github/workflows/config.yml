@@ -593,7 +593,7 @@ jobs:
     # Service containers to run with `container-job`
     services:
       # Label used to access the service container
-      localhost:
+      postgres:
         # Docker Hub image
         image: postgres
         # Provide the password for postgres
@@ -610,11 +610,11 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
     steps:
       - uses: actions/checkout@v2
-      - uses: harmon758/postgresql-action@v1
-        with:
-          postgresql version: '10'
       - uses: actions/setup-elixir@v1
         with:
           otp-version: '22.2'
@@ -714,8 +714,6 @@ jobs:
         run: node node_modules/webpack/bin/webpack.js --mode development
         working-directory: "apps/block_scout_web/assets"
       - run: ./bin/install_chrome_headless.sh
-      # - name: Wait for DB
-      #   run: dockerize -wait tcp://localhost:5432 -timeout 1m
       - name: mix test --exclude no_parity
         run: mix coveralls.html --exclude no_parity --parallel --umbrella
         env:
