@@ -590,19 +590,16 @@ jobs:
         working-directory: apps/block_scout_web/assets
   test_parity_mox:
     runs-on: ubuntu-latest
-    container:
-      image: circleci/postgres:10.10-alpine
-      env:
-        # Match apps/explorer/config/test.exs config :explorer, Explorer.Repo, database
-        POSTGRES_DB: explorer_test
-        # match PGPASSWORD for elixir image above
-        POSTGRES_PASSWORD: postgres
-        # match PGUSER for elixir image above
-        POSTGRES_USER: postgres
-      ports:
-        - 5432
+    env:
+      # Match apps/explorer/config/test.exs config :explorer, Explorer.Repo, database
+      POSTGRES_DB: explorer_test
+      # match PGPASSWORD for elixir image above
+      POSTGRES_PASSWORD: postgres
+      # match PGUSER for elixir image above
+      POSTGRES_USER: postgres
     steps:
       - uses: actions/checkout@v2
+      - uses: circleci/postgres:10.10-alpine
       - uses: actions/setup-elixir@v1
         with:
           otp-version: '22.2'
