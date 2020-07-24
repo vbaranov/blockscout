@@ -3,7 +3,7 @@ name: Blockscout
 on: push
 
 jobs:
-  build:
+  check_formatted:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -106,68 +106,26 @@ jobs:
       - name: Build assets
         run: node node_modules/webpack/bin/webpack.js --mode development
         working-directory: "apps/block_scout_web/assets"
-      - name: Upload all files
-        uses: actions/upload-artifact@v2
-        with:
-          name: blockscout
-          path: |
-             .credo.exs
-             .dialyzerignore
-             .formatter.exs
-             .gitignore
-             apps
-             mix.exs
-             mix.lock
-             appspec.yml
-  check_formatted:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-elixir@v1
-        with:
-          otp-version: '22.2'
-          elixir-version: '1.10.3'
-      - name: Download build
-        uses: actions/download-artifact@v2
-        with:
-          name: blockscout
       - run: mix format --check-formatted
-  credo:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-elixir@v1
-        with:
-          otp-version: '22.2'
-          elixir-version: '1.10.3'
-      - name: Download build
-        uses: actions/download-artifact@v2
-        with:
-          name: blockscout
-      - run: |
-          mix local.hex --force
-          mix credo
-      - name: dialyzer
-        run: |
-          mkdir -p _build/test
-          cp plts/dialyxir*.plt _build/test/ || true
-          mkdir -p ~/.mix
-          cp plts/dialyxir*.plt ~/.mix/ || true
-          mix dialyzer --plt
-          mkdir -p plts
-          cp _build/test/dialyxir*.plt plts/
-          cp ~/.mix/dialyxir*.plt plts/
-          mix dialyzer --halt-exit-status
-      - name: eslint
-        run: ./node_modules/.bin/eslint --format=junit --output-file="test/eslint/junit.xml" js/**
-        working-directory: apps/block_scout_web/assets
-      - name: gettext
-        run: |
-          mix gettext.extract --merge | tee stdout.txt
-          ! grep "Wrote " stdout.txt
-        working-directory: "apps/block_scout_web"
-      - name: jest
-        run: ./node_modules/.bin/jest
-        working-directory: apps/block_scout_web/assets
+      # - name: dialyzer
+      #   run: |
+      #     mkdir -p _build/test
+      #     cp plts/dialyxir*.plt _build/test/ || true
+      #     mkdir -p ~/.mix
+      #     cp plts/dialyxir*.plt ~/.mix/ || true
+      #     mix dialyzer --plt
+      #     mkdir -p plts
+      #     cp _build/test/dialyxir*.plt plts/
+      #     cp ~/.mix/dialyxir*.plt plts/
+      #     mix dialyzer --halt-exit-status
+      # - name: eslint
+      #   run: ./node_modules/.bin/eslint --format=junit --output-file="test/eslint/junit.xml" js/**
+      #   working-directory: apps/block_scout_web/assets
+      # - name: gettext
+      #   run: |
+      #     mix gettext.extract --merge | tee stdout.txt
+      #     ! grep "Wrote " stdout.txt
+      #   working-directory: "apps/block_scout_web"
+      # - name: jest
+      #   run: ./node_modules/.bin/jest
+      #   working-directory: apps/block_scout_web/assets
