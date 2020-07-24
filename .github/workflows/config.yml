@@ -721,3 +721,8 @@ jobs:
           POSTGRES_HOST: localhost
           # The default PostgreSQL port
           POSTGRES_PORT: 5432
+          POSTGRES_DB: explorer_test
+          # match PGPASSWORD for elixir image above
+          POSTGRES_PASSWORD: postgres
+          # match PGUSER for elixir image above
+          POSTGRES_USER: postgres
