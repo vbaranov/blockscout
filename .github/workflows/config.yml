@@ -3,6 +3,23 @@ name: Blockscout
 on: push
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: ./bin/install_chrome_headless.sh
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+      - run: mix deps.get
+      - run: npm install
+        working-directory: apps/explorer
+      - run: npm install
+        working-directory: apps/block_scout_web/assets
+      - run: mix compile
+      - run: make
+        working-directory: "deps/libsecp256k1"
+      - name: Build assets
+        run: node node_modules/webpack/bin/webpack.js --mode development
+        working-directory: "apps/block_scout_web/assets"
   credo:
     runs-on: ubuntu-latest
     steps:
