@@ -148,3 +148,14 @@ jobs:
           cp _build/test/dialyxir*.plt plts/
           cp ~/.mix/dialyxir*.plt plts/
           mix dialyzer --halt-exit-status
+      - name: eslint
+        run: ./node_modules/.bin/eslint --format=junit --output-file="test/eslint/junit.xml" js/**
+        working-directory: apps/block_scout_web/assets
+      - name: gettext
+        run: |
+          mix gettext.extract --merge | tee stdout.txt
+          ! grep "Wrote " stdout.txt
+        working-directory: "apps/block_scout_web"
+      - name: jest
+        run: ./node_modules/.bin/jest
+        working-directory: apps/block_scout_web/assets
