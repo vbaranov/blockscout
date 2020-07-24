@@ -593,7 +593,7 @@ jobs:
     # Service containers to run with `container-job`
     services:
       # Label used to access the service container
-      postgres:
+      localhost:
         # Docker Hub image
         image: postgres
         # Provide the password for postgres
@@ -717,19 +717,9 @@ jobs:
       # - name: Wait for DB
       #   run: dockerize -wait tcp://localhost:5432 -timeout 1m
       - name: mix test --exclude no_parity
-        run: |
-          # Don't submit coverage report for forks, but let the build succeed
-          if [[ -z "$COVERALLS_REPO_TOKEN" ]]; then
-            mix coveralls.html --exclude no_parity --parallel --umbrella
-          else
-            mix coveralls.circle --exclude no_parity --parallel --umbrella ||
-              # if mix failed, then coveralls_merge won't run, so signal done here and return original exit status
-              (retval=$? && curl -k https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$CIRCLE_WORKFLOW_WORKSPACE_ID&payload[status]=done" && return $retval)
-          fi
+        run: mix coveralls.html --exclude no_parity --parallel --umbrella
         env:
           # The hostname used to communicate with the PostgreSQL service container
-          POSTGRES_HOST: postgres
+          POSTGRES_HOST: localhost
           # The default PostgreSQL port
           POSTGRES_PORT: 5432
-      - name: Tell coveralls.io build is done
-        run: curl -k https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$CIRCLE_WORKFLOW_WORKSPACE_ID&payload[status]=done"
