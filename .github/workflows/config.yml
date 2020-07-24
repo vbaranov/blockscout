@@ -114,21 +114,10 @@ jobs:
              .credo.exs
              .dialyzerignore
              .formatter.exs
-            #  .git
              .gitignore
-            #  ELIXIR_VERSION.lock
-            #  Gemfile
-            #  Gemfile.lock
-            #  OTP_VERSION.lock
-            #  _build
-            #  apps
-            #  bin
-            #  config
-            #  deps
              mix.exs
              mix.lock
              appspec.yml
-            #  rel
   check_formatted:
     runs-on: ubuntu-latest
     needs: build
