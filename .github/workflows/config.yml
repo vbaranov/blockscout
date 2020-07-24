@@ -588,8 +588,19 @@ jobs:
         working-directory: "apps/block_scout_web/assets"
       - run: ./node_modules/.bin/jest
         working-directory: apps/block_scout_web/assets
-  release:
+  test_parity_mox:
     runs-on: ubuntu-latest
+    container:
+      image: circleci/postgres:10.10-alpine
+      env:
+        # Match apps/explorer/config/test.exs config :explorer, Explorer.Repo, database
+        POSTGRES_DB: explorer_test
+        # match PGPASSWORD for elixir image above
+        POSTGRES_PASSWORD: postgres
+        # match PGUSER for elixir image above
+        POSTGRES_USER: postgres
+      ports:
+        - 5432
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-elixir@v1
@@ -690,13 +701,18 @@ jobs:
       - name: Build assets
         run: node node_modules/webpack/bin/webpack.js --mode development
         working-directory: "apps/block_scout_web/assets"
-      - run: mix local.hex --force
-      - run: mix local.rebar --force
-      - run: MIX_ENV=prod mix release
-      - name: Collecting artifacts
+      - run: ./bin/install_chrome_headless.sh
+      - name: Wait for DB
+        run: dockerize -wait tcp://localhost:5432 -timeout 1m
+      - name: mix test --exclude no_parity
         run: |
-          find -name 'blockscout.tar.gz' -exec sh -c 'mkdir -p ci_artifact && cp "$@" ci_artifact/ci_artifact_blockscout.tar.gz' _ {} +
-      - uses: actions/upload-artifact@v2
-        with:
-          name: Uploading-CI-artifacts
-          path: ci_artifact/ci_artifact_blockscout.tar.gz
+          # Don't submit coverage report for forks, but let the build succeed
+          if [[ -z "$COVERALLS_REPO_TOKEN" ]]; then
+            mix coveralls.html --exclude no_parity --parallel --umbrella
+          else
+            mix coveralls.circle --exclude no_parity --parallel --umbrella ||
+              # if mix failed, then coveralls_merge won't run, so signal done here and return original exit status
+              (retval=$? && curl -k https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$CIRCLE_WORKFLOW_WORKSPACE_ID&payload[status]=done" && return $retval)
+          fi
+      - name: Tell coveralls.io build is done
+        run: curl -k https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$CIRCLE_WORKFLOW_WORKSPACE_ID&payload[status]=done"
