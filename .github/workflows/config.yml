@@ -324,6 +324,62 @@ jobs:
           mix gettext.extract --merge | tee stdout.txt
           ! grep "Wrote " stdout.txt
         working-directory: "apps/block_scout_web"
+  sobelow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-elixir@v1
+        with:
+          otp-version: '22.2'
+          elixir-version: '1.10.3'
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+      - name: Cache mix.exs
+        uses: actions/cache@v2
+        with:
+          path: ~/
+          key: |
+            v8-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum "ELIXIR_VERSION.lock" }}-{{ checksum "mix.lock" }}
+            v8-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum "ELIXIR_VERSION.lock" }}-{{ checksum "mix.exs" }}
+            v8-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum "ELIXIR_VERSION.lock" }}
+          restore-keys: v8-mix-compile-
+      - run: mix deps.get
+      - run: mix compile
+      - run: make
+        working-directory: "deps/libsecp256k1"
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+              deps
+              _build
+          key: >-
+            v8-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum
+            "ELIXIR_VERSION.lock" }}-{{ checksum "mix.lock" }}
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+              deps
+              _build
+          key: >-
+            v8-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum
+            "ELIXIR_VERSION.lock" }}-{{ checksum "mix.exs" }}
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+              deps
+              _build
+          key: >-
+            v8-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum
+            "ELIXIR_VERSION.lock" }}
+      - name: Scan explorer for vulnerabilities
+        run: mix sobelow --config
+        working-directory: "apps/explorer"
+      - name: Scan block_scout_web for vulnerabilities
+        run: mix sobelow --config
+        working_directory: "apps/block_scout_web"
   eslint:
     runs-on: ubuntu-latest
     steps:
