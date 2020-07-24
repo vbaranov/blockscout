@@ -590,13 +590,26 @@ jobs:
         working-directory: apps/block_scout_web/assets
   test_parity_mox:
     runs-on: ubuntu-latest
-    env:
-      # Match apps/explorer/config/test.exs config :explorer, Explorer.Repo, database
-      POSTGRES_DB: explorer_test
-      # match PGPASSWORD for elixir image above
-      POSTGRES_PASSWORD: postgres
-      # match PGUSER for elixir image above
-      POSTGRES_USER: postgres
+    # Service containers to run with `container-job`
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres
+        # Provide the password for postgres
+        env:
+          # Match apps/explorer/config/test.exs config :explorer, Explorer.Repo, database
+          POSTGRES_DB: explorer_test
+          # match PGPASSWORD for elixir image above
+          POSTGRES_PASSWORD: postgres
+          # match PGUSER for elixir image above
+          POSTGRES_USER: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v2
       - uses: harmon758/postgresql-action@v1
@@ -713,5 +726,10 @@ jobs:
               # if mix failed, then coveralls_merge won't run, so signal done here and return original exit status
               (retval=$? && curl -k https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$CIRCLE_WORKFLOW_WORKSPACE_ID&payload[status]=done" && return $retval)
           fi
+        env:
+          # The hostname used to communicate with the PostgreSQL service container
+          POSTGRES_HOST: postgres
+          # The default PostgreSQL port
+          POSTGRES_PORT: 5432
       - name: Tell coveralls.io build is done
         run: curl -k https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$CIRCLE_WORKFLOW_WORKSPACE_ID&payload[status]=done"
