@@ -106,7 +106,7 @@ jobs:
       - name: Build assets
         run: node node_modules/webpack/bin/webpack.js --mode development
         working-directory: "apps/block_scout_web/assets"
-  build:
+  credo:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -210,8 +210,8 @@ jobs:
         run: node node_modules/webpack/bin/webpack.js --mode development
         working-directory: "apps/block_scout_web/assets"
       - run: |
-      mix local.hex --force
-      mix credo
+          mix local.hex --force
+          mix credo
   check_formatted:
     runs-on: ubuntu-latest
     steps:
