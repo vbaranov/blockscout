@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - run: ./bin/install_chrome_headless.sh
+      # - run: ./bin/install_chrome_headless.sh
       - run: mix local.hex --force
       - run: mix local.rebar --force
       - run: mix deps.get
