@@ -701,8 +701,8 @@ jobs:
         run: node node_modules/webpack/bin/webpack.js --mode development
         working-directory: "apps/block_scout_web/assets"
       - run: ./bin/install_chrome_headless.sh
-      - name: Wait for DB
-        run: dockerize -wait tcp://localhost:5432 -timeout 1m
+      # - name: Wait for DB
+      #   run: dockerize -wait tcp://localhost:5432 -timeout 1m
       - name: mix test --exclude no_parity
         run: |
           # Don't submit coverage report for forks, but let the build succeed
