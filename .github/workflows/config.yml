@@ -379,7 +379,7 @@ jobs:
         working-directory: "apps/explorer"
       - name: Scan block_scout_web for vulnerabilities
         run: mix sobelow --config
-        working_directory: "apps/block_scout_web"
+        working-directory: "apps/block_scout_web"
   eslint:
     runs-on: ubuntu-latest
     steps:
