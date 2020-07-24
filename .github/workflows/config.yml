@@ -599,7 +599,9 @@ jobs:
       POSTGRES_USER: postgres
     steps:
       - uses: actions/checkout@v2
-      - uses: circleci/postgres@10.10-alpine
+      - uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: '10'
       - uses: actions/setup-elixir@v1
         with:
           otp-version: '22.2'
