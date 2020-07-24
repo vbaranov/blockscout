@@ -17,17 +17,103 @@ jobs:
       - run: mix deps.get
       - run: npm install
         working-directory: apps/explorer
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: apps/explorer/node_modules
+          key: >-
+            v3-npm-install-{{ .Branch }}-{{ checksum
+            "apps/explorer/package-lock.json" }}
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: apps/explorer/node_modules
+          key: 'v3-npm-install-{{ .Branch }}'
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: apps/explorer/node_modules
+          key: v3-npm-install
       - run: npm install
         working-directory: apps/block_scout_web/assets
+      - run: npm rebuild node-sass
+        working-directory: apps/block_scout_web/assets
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: apps/block_scout_web/assets/node_modules
+          key: >-
+            v7-npm-install-{{ .Branch }}-{{ checksum
+            "apps/block_scout_web/assets/package-lock.json" }}
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: apps/block_scout_web/assets/node_modules
+          key: 'v7-npm-install-{{ .Branch }}'
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: apps/block_scout_web/assets/node_modules
+          key: v7-npm-install
       - run: mix compile
       - run: make
         working-directory: "deps/libsecp256k1"
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+             deps
+             _build
+          key: >-
+            v8-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum
+            "ELIXIR_VERSION.lock" }}-{{ checksum "mix.lock" }}
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+             deps
+             _build
+          key: >-
+            v8-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum
+            "ELIXIR_VERSION.lock" }}-{{ checksum "mix.exs" }}
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+             deps
+             _build
+          key: >-
+            v8-mix-compile-{{ checksum "OTP_VERSION.lock" }}-{{ checksum
+            "ELIXIR_VERSION.lock" }}
       - name: Build assets
         run: node node_modules/webpack/bin/webpack.js --mode development
         working-directory: "apps/block_scout_web/assets"
-  credo:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - run: mix local.hex --force
-      - run: mix credo
+      - name: Upload files
+        uses: actions/upload-artifact@v2
+        with:
+          name: blockscout
+          path: |
+             .circleci
+             .credo.exs
+             .dialyzerignore
+             .formatter.exs
+             .git
+             .gitignore
+             ELIXIR_VERSION.lock
+             Gemfile
+             Gemfile.lock
+             OTP_VERSION.lock
+             _build
+             apps
+             bin
+             config
+             deps
+             doc
+             mix.exs
+             mix.lock
+             appspec.yml
+             rel
+      - name: mix credo
+        run: |
+          mix local.hex --force
+          mix credo
