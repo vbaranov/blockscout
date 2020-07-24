@@ -3,7 +3,7 @@ name: Blockscout
 on: push
 
 jobs:
-  build:
+  all_tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -131,7 +131,20 @@ jobs:
       #        mix.lock
       #        appspec.yml
       #        rel
-      - name: mix credo
+      - name: check_formatted
+        run: mix format --check-formatted
+      - name: credo
         run: |
           mix local.hex --force
           mix credo
+      - name: dialyzer
+        run: |
+          mkdir -p _build/test
+          cp plts/dialyxir*.plt _build/test/ || true
+          mkdir -p ~/.mix
+          cp plts/dialyxir*.plt ~/.mix/ || true
+          mix dialyzer --plt
+          mkdir -p plts
+          cp _build/test/dialyxir*.plt plts/
+          cp ~/.mix/dialyxir*.plt plts/
+          mix dialyzer --halt-exit-status
